@@ -51,10 +51,9 @@ class Print {
 
         } catch (ParentheseOuvranteException e) {
             System.err.println("Erreur : parenthèse ouvrante manquante");
-        } 
-        catch(UnknownVariableException e){
+        } catch (UnknownVariableException e) {
             System.err.println("Erreur : unknown variable");
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.err.println("Erreur : Expression erronée");
         }
     }
@@ -79,9 +78,10 @@ class CoupleTerme {
     private Character signe;
 
     public CoupleTerme(Character signe, Terme terme) throws SyntaxErrorException {
-        if (signe != '+' && signe != '-'){
-        System.out.println("at 80");
-            throw new SyntaxErrorException();}
+        if (signe != '+' && signe != '-') {
+            System.out.println("at 83");
+            throw new SyntaxErrorException();
+        }
         this.signe = signe;
         this.terme = terme;
     }
@@ -101,8 +101,8 @@ class CoupleFacteur {
     private Character operation;
 
     public CoupleFacteur(Character operation, Facteur facteur) throws SyntaxErrorException {
-        if (operation != '/' && operation != '*'){
-        System.out.println("at 101");
+        if (operation != '/' && operation != '*') {
+            System.out.println("at 105");
             throw new SyntaxErrorException();
         }
         this.operation = operation;
@@ -161,7 +161,7 @@ class Terme implements Evaluable, Extractable {
                     }
                     break;
                 default:
-                System.out.println("at 161");
+                    System.out.println("at 164");
                     throw new SyntaxErrorException();
             }
         }
@@ -305,7 +305,7 @@ class Variable extends Element {
         super(nom);
         for (char c : nom.toCharArray()) {
             if (!Character.isDigit(c) && !Character.isLetter(c)) {
-                System.out.println("at 304");
+                System.out.println("at 308");
                 throw new InvalidNameException();
             }
         }
@@ -321,7 +321,7 @@ class Variable extends Element {
         try {
             return Let.map.get(this.valeur).Evaluer();
         } catch (Exception e) {
-            System.out.println("at 319");
+            System.out.println("at 324");
             throw new UnknownVariableException();
         }
     }
@@ -334,7 +334,7 @@ class Nombre extends Element {
         super(valeur);
         for (char c : valeur.toCharArray()) {
             if (!Character.isDigit(c)) {
-                System.out.println("at 331");
+                System.out.println("at 337");
                 throw new InvalidValueException();
             }
         }
@@ -359,7 +359,7 @@ class Pile {
 
     public Character depiler() throws Exception {
         if (this.estVide()) {
-            System.out.println("at 355");
+            System.out.println("at 362");
             throw new EmptyStackException();
         }
         return pile.pop();
@@ -394,7 +394,7 @@ class ExpressionParenthesee {
                     while (pile.depiler() != '(') {
                     }
                 } catch (Exception ex) {
-                    System.out.println("at 389");
+                    System.out.println("at 397");
                     throw new ParentheseOuvranteException();
                 }
             }
@@ -402,7 +402,7 @@ class ExpressionParenthesee {
         if (pile.estVide()) {
             return true;
         } else {
-            System.out.println("at 396");
+            System.out.println("at 405");
             throw new ParentheseFermanteException();
         }
     }
@@ -421,14 +421,35 @@ class Expression extends Element implements Extractable {
     List<CoupleTerme> termes;
 
     public Expression(String exp) throws Exception {
-        super("(" + exp + ")");
+        super(trimParentheses(exp));
+        exp = trimParentheses(exp);
+        System.out.println("REE " + exp);
         this.termes = new ArrayList<>();
         ExtraireComposants(exp);
     }
 
+    private static String trimParentheses(String st){
+        StringBuilder sb = new StringBuilder("");
+        int f=0,l=st.length();
+        for(int i=0;i<st.length();i++){
+            if(st.charAt(i)!='(')
+            {
+                f=i;
+                break;
+            }
+        }
+        for(int j=st.length()-1;j>=0;j--){
+            if(st.charAt(j)!=')')
+            {
+                l=j;
+                break;
+            }
+        }
+        return st.substring(f,l+1);
+    }
+
     public double Evaluer() throws Exception {
         double res = (termes.get(0).getSigne() == '-' ? -1 : 1) * termes.get(0).getTerme().Evaluer();
-
         for (int i = 1; i < termes.size(); i++) {
             switch (termes.get(i).getSigne()) {
                 case '+':
@@ -493,7 +514,7 @@ class Let implements Extractable {
     @Override
     public void ExtraireComposants(String s) throws Exception {
         if (!s.contains("=")) {
-            System.out.println("at 486");
+            System.out.println("at 496");
             throw new SyntaxErrorException();
         }
         Variable variable = new Variable(s.substring(0, s.indexOf('=')).trim());
@@ -512,18 +533,23 @@ public class TP_2021 {
         while (!inst.equals("end")) {
             inst = inst.toLowerCase();
             try {
-                switch (Check(inst)) {
-                    case "print":
-                        Print p = new Print(new Expression(inst.substring(inst.indexOf(" ")).trim()));
-                        p.print();
-                        break;
-                    case "let":
-                        Let l = new Let(inst.substring(inst.indexOf(" ")).trim());
-                        break;
+                if (inst.equals("show")) {
+                    System.out.println(Let.map.toString());
+                } else {
+                    switch (Check(inst)) {
+                        case "print":
+                            Print p = new Print(new Expression(inst.substring(inst.indexOf(" ")).trim()));
+                            p.print();
+                            break;
+                        case "let":
+                            Let l = new Let(inst.substring(inst.indexOf(" ")).trim());
+                            break;
+                    }
                 }
             } catch (UnknownInstructionException e) {
                 System.err.println("Erreur : print ou let seulement");
-            }System.out.print(">> ");
+            }
+            System.out.print(">> ");
             inst = sc.nextLine();
         }
     }
@@ -531,7 +557,7 @@ public class TP_2021 {
     static String Check(String st) throws UnknownInstructionException {
         String[] ar = st.split(" ");
         if (!ar[0].equals("print") && !ar[0].equals("let")) {
-            System.out.println("at 524");
+            System.out.println("at 534");
             throw new UnknownInstructionException();
         }
         return ar[0];
